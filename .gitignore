@@ -32,5 +32,7 @@ yarn-error.log*
 *.sln
 *.sw*
 
-.env
-master.json
+
+contracts/.env
+contracts/master.json
+contracts/node_modules
