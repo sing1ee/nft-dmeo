@@ -96,6 +96,7 @@ import TriStateCheckbox from 'primevue/tristatecheckbox';
 
 import CodeHighlight from './AppCodeHighlight';
 import BlockViewer from './BlockViewer';
+import * as ethers from 'ethers'
 
 router.beforeEach(function(to, from, next) {
     window.scrollTo(0, 0);
@@ -105,6 +106,8 @@ router.beforeEach(function(to, from, next) {
 const app = createApp(AppWrapper);
 
 app.config.globalProperties.$appState = reactive({ theme: 'lara-light-indigo', darkTheme: false });
+
+app.provide("ethers", ethers)
 
 app.use(PrimeVue, { ripple: true, inputStyle: 'outlined' });
 app.use(ConfirmationService);
