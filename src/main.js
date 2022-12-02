@@ -107,6 +107,7 @@ const app = createApp(AppWrapper);
 
 app.config.globalProperties.$appState = reactive({ theme: 'lara-light-indigo', darkTheme: false });
 
+app.provide(/* key */ 'message', /* value */ 'hello!')
 app.provide("ethers", ethers)
 
 app.use(PrimeVue, { ripple: true, inputStyle: 'outlined' });

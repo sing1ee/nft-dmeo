@@ -13,6 +13,16 @@ const routes = [
                 component: () => import('./components/Dashboard.vue')
             },
             {
+                path: 'nft',
+                name: 'nft',
+                component: () => import('./components/NFT.vue')
+            },
+            {
+                path: 'valuelink',
+                name: 'valuelink',
+                component: () => import('./components/ValueLink.vue')
+            },
+            {
                 path: '/formlayout',
                 name: 'formlayout',
                 component: () => import('./components/FormLayoutDemo.vue')

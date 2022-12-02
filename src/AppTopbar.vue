@@ -44,7 +44,8 @@ export default {
 		for(const k in this.networks) {
 			this.dropdownItems.push({'code': k, 'name': this.networks[k]})
 		}
-		if(window.ethereum.isConnected()) {
+		console.log("wallet connect: ", window.ethereum.isConnected())
+		if(!window.ethereum.isConnected()) {
 			this.connect()
 		}
 	},
