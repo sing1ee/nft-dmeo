@@ -33,8 +33,7 @@ export default {
 			dropdownItem: null,
 			networks: {
 				'0x5': 'Goerli',
-				'0x13881': 'Polygon Mumbai',
-				'Current Network': 'Current Network'
+				'0x13881': 'Polygon Mumbai'
 			},
 			currentAccount: 'Connect wallet',
 			chainId: 'Choose Network',
