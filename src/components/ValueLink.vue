@@ -144,7 +144,7 @@
                 const signer = this.provider.getSigner()
                 const address = await signer.getAddress()
                 const contract = this.nftContracts[this.categoryKey]
-                console.log('start mint：', this.categoryKey)
+                console.log('start mint', this.categoryKey)
                 const name = await contract.name()
                 const total = await contract.totalSupply()
                 console.log('minting', name, total.toNumber(), "to", address)

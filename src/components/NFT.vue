@@ -5,6 +5,18 @@
 				<h5>NFT List</h5>
                 <Toast />
 				<ProgressBar v-if="loading" mode="indeterminate"/>
+				<Dialog header="Claim ValueLink" v-model:visible="claimDisplay" :breakpoints="{'960px': '75vw'}" :style="{width: '30vw'}" :modal="true">
+					<p class="line-height-3 m-0">
+						Choose NFT that belongs to you is better. Because you can provide the valid proof for value link easily.
+					</p>
+					<br />
+                    <Dropdown id="dropdown" v-model="valuelinkType" :options="valueLinkOptions" optionValue="value" optionLabel="label" placeholder="Choose ValueLink" @change="onVLChange($event)"/>
+					<br />
+					<p v-if="valuelinkType" class="line-height-3 m-0">{{ vlDesc[valuelinkType] }}</p>
+					<template #footer>
+						<Button label="Claim" @click="claim()" icon="pi pi-check" class="p-button-outlined"/>
+					</template>
+				</Dialog>
 				<DataView :value="dataviewValue" :layout="layout" :paginator="true" :rows="9">
 					<template #header>
 						<div class="grid grid-nogutter">
@@ -33,7 +45,7 @@
 								</div>
 								<div class="flex flex-row md:flex-column justify-content-between w-full md:w-auto align-items-center md:align-items-end mt-5 md:mt-0">
 									<span class="text-2xl font-semibold mb-2 align-self-center md:align-self-end">${{slotProps.data.price}}</span>
-									<Button label="Claim" :disabled="slotProps.data.inventoryStatus === 'OUTOFSTOCK'" class="mb-2"></Button>
+									<Button label="Claim" :disabled="slotProps.data.inventoryStatus === 'OUTOFSTOCK'" class="mb-2" @click="showClaim(slotProps.data)"></Button>
 									<span :class="'product-badge status-'+slotProps.data.inventoryStatus.toLowerCase()">{{slotProps.data.inventoryStatus}}</span>
 								</div>
 							</div>
@@ -58,7 +70,7 @@
 								</div>
 								<div class="flex align-items-center justify-content-between">
 									<span class="text-2xl font-semibold">${{slotProps.data.price}}</span>
-									<Button label="Claim" :disabled="slotProps.data.inventoryStatus === 'OUTOFSTOCK'"></Button>
+									<Button label="Claim" :disabled="slotProps.data.inventoryStatus === 'OUTOFSTOCK'" @click="showClaim(slotProps.data)"></Button>
 								</div>
 							</div>
 						</div>
@@ -71,6 +83,7 @@
 
 <script>
     import NFTService from "../service/NFTService"
+	import NFTUri from "../common/NFTURi"
     import axios from 'axios'
 
 	export default {
@@ -92,7 +105,18 @@
                         return 'https://genesis.mypinata.cloud/ipfs/QmYxuHhAoLT3gAWaq39RKDFRGKiirsxCgryLgrA44cobV1/' + tokenId
                     }
                 },
-				loading: false
+				loading: false,
+				claimDisplay: false,
+				selectedToken: null,
+				valuelinkType: null,
+				valueLinkOptions: [
+					{label: 'Authorization', value: 'Authorization'},
+					{label: 'Fans', value: 'Fans'},
+				],
+				vlDesc: {
+					'Authorization': 'Create value link that stands right to use!',
+					'Fans': 'Create value link that stands following relationship!'
+				}
 			}
 		},
         nftService: null,
@@ -110,9 +134,10 @@
             for (const opt of this.categoryOptions) {
                 const abi = await this.nftService.getNFT(opt.value);
                 this.nftContracts[opt.value] = new this.ethers.Contract(this.nftService.getContractAddress(opt.value), abi.abi, this.provider)
-                this.nftContracts[opt.value].on("Transfer", (from, to, tokenId, event) => {
-                    console.log(from, to, tokenId, event.transactionHash)
-                })
+            }
+			for (const opt of this.valueLinkOptions) {
+                const abi = await this.nftService.getNFT(opt.value);
+                this.nftContracts[opt.value] = new this.ethers.Contract(this.nftService.getContractAddress(opt.value), abi.abi, this.provider)
             }
 		},
 		methods: {
@@ -156,14 +181,41 @@
                 const total = await contract.totalSupply()
                 console.log('minting', name, total.toNumber(), "to", address)
                 const withSigner = contract.connect(signer)
-                const tx = await withSigner.mint(address);
+                const tx = await withSigner.mint(address)
                 this.provider.once(tx.hash, (tx) => {
                     // Emitted when the transaction has been mined
                     console.log("txed:", tx)
-                    this.$toast.add({severity:'info', summary: 'Minted', detail:'' + tx.hash, life: 5000});
+                    this.$toast.add({severity:'info', summary: 'Minted', detail:'' + tx.transactionHash, life: 5000});
                 })
                 this.$toast.add({severity:'info', summary: 'Minting', detail:'' + tx.hash, life: 5000});
-            }
+            },
+			onVLChange(choosedVL) {
+				console.log(choosedVL.value, this.valuelinkType, this.vlDesc[this.valuelinkType])
+			},
+			showClaim(token) {
+				this.selectedToken = token
+				this.claimDisplay = true
+			},
+			async claim() {
+				const signer = this.provider.getSigner()
+                const contract = this.nftContracts[this.valuelinkType]
+				const name = await contract.name()
+                const totalClaims = await contract.totalClaims()
+				const { chainId } = await this.provider.getNetwork()
+				const contractAddress = await this.nftService.getContractAddress(this.valuelinkType)
+				const uftUri = new NFTUri(chainId, contractAddress, this.selectedToken.id)
+				console.log('start claim', this.valuelinkType, name, totalClaims.toNumber(), uftUri.toString())
+				const withSigner = contract.connect(signer)
+				const tx = await withSigner.claim(uftUri.toString(), 1000)
+				this.provider.once(tx.hash, (tx) => {
+                    // Emitted when the transaction has been mined
+                    console.log("txed:", tx)
+                    this.$toast.add({severity:'info', summary: 'Claimd', detail:'' + tx.transactionHash, life: 5000});
+                })
+                this.$toast.add({severity:'info', summary: 'Claiming', detail:'' + tx.hash, life: 5000});
+				this.claimDisplay = false
+
+			}
 		}
 	}
 </script>
