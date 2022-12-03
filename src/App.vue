@@ -37,21 +37,14 @@ export default {
                 {
                     label: 'NFT',
                     items: [{
-                        label: 'NFT', icon: 'pi pi-fw pi-home', to: '/nft'
+                        label: 'NFT', icon: 'pi pi-fw pi-bars', to: '/nft'
                     }]
                 },
                 {
                     label: 'ValueLink',
                     items: [{
-                        label: 'ValueLink', icon: 'pi pi-fw pi-bars', to: '/valuelink'
+                        label: 'ValueLink', icon: 'pi pi-fw pi-globe', to: '/valuelink'
                     }]
-                },
-                {
-                    label: 'Mine',
-                    items: [
-                        {label: 'NFTs', icon: 'pi pi-fw pi-list', to: '/'},
-                        {label: 'ValueLinks', icon: 'pi pi-fw pi-list', to: '/'},
-                    ]
                 },
                 {
                     label: 'Home',

@@ -4,6 +4,7 @@
 			<div class="card">
 				<h5>NFT List</h5>
                 <Toast />
+				<ProgressBar v-if="loading" mode="indeterminate"/>
 				<DataView :value="dataviewValue" :layout="layout" :paginator="true" :rows="9">
 					<template #header>
 						<div class="grid grid-nogutter">
@@ -32,7 +33,7 @@
 								</div>
 								<div class="flex flex-row md:flex-column justify-content-between w-full md:w-auto align-items-center md:align-items-end mt-5 md:mt-0">
 									<span class="text-2xl font-semibold mb-2 align-self-center md:align-self-end">${{slotProps.data.price}}</span>
-									<Button icon="pi pi-shopping-cart" label="Add to Cart" :disabled="slotProps.data.inventoryStatus === 'OUTOFSTOCK'" class="mb-2"></Button>
+									<Button label="Claim" :disabled="slotProps.data.inventoryStatus === 'OUTOFSTOCK'" class="mb-2"></Button>
 									<span :class="'product-badge status-'+slotProps.data.inventoryStatus.toLowerCase()">{{slotProps.data.inventoryStatus}}</span>
 								</div>
 							</div>
@@ -57,7 +58,7 @@
 								</div>
 								<div class="flex align-items-center justify-content-between">
 									<span class="text-2xl font-semibold">${{slotProps.data.price}}</span>
-									<Button icon="pi pi-shopping-cart" :disabled="slotProps.data.inventoryStatus === 'OUTOFSTOCK'"></Button>
+									<Button label="Claim" :disabled="slotProps.data.inventoryStatus === 'OUTOFSTOCK'"></Button>
 								</div>
 							</div>
 						</div>
@@ -90,10 +91,10 @@
                     Art: (tokenId) => {
                         return 'https://genesis.mypinata.cloud/ipfs/QmYxuHhAoLT3gAWaq39RKDFRGKiirsxCgryLgrA44cobV1/' + tokenId
                     }
-                }
+                },
+				loading: false
 			}
 		},
-		productService: null,
         nftService: null,
         provider: null,
         nftContracts: null,
@@ -117,11 +118,13 @@
 		methods: {
 			async oncategoryChange(choosedItem){
                 console.log(choosedItem.value)
+				this.dataviewValue = null;
                 await this.listNFTs()
 			},
             async listNFTs()  {
                 const contract = this.nftContracts[this.categoryKey]
                 const size = await contract.totalSupply()
+				this.loading = true
                 const list = []
                 for (let index = size - 1; index >= 0; index--) {
                     const tokenId = await contract.tokenByIndex(index)
@@ -141,8 +144,8 @@
                         "rating": tokenId.toNumber() % 5
                     })
                 }
-                console.log(this.dataviewValue)
                 this.dataviewValue = list;
+				this.loading = false;
             },
             async mint() {
                 const signer = this.provider.getSigner()
