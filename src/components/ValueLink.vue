@@ -157,7 +157,7 @@
                 const list = []
                 for (let index = size - 1; index >= 0; index--) {
                     const startNftUri = await contract.claimByIndex(index)
-					console.log(startNftUri)
+					console.log(index, startNftUri)
 					const nftUri = NFTUri.parse(startNftUri)
 					//we need cross chain service
 					console.log('parse', nftUri.toString())
