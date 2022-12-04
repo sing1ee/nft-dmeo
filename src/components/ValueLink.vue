@@ -157,6 +157,7 @@
                 const list = []
                 for (let index = size - 1; index >= 0; index--) {
                     const startNftUri = await contract.claimByIndex(index)
+					console.log(startNftUri)
 					const nftUri = NFTUri.parse(startNftUri)
 					//we need cross chain service
 					console.log('parse', nftUri.toString())
@@ -191,6 +192,7 @@
 				this.mintDialog = true
 			},
             async mint() {
+				this.loading = true
 				console.log(this.selectedNFT)
                 const signer = this.provider.getSigner()
                 const contract = this.nftContracts[this.valueLinkType]
@@ -202,6 +204,7 @@
                 this.provider.once(tx.hash, (tx) => {
                     console.log("txed:", tx)
                     this.$toast.add({severity:'info', summary: 'Value Link Minted', detail:'' + tx.transactionHash, life: 5000});
+					this.loading = false
                 })
                 this.$toast.add({severity:'info', summary: 'Value Link Minting', detail:'' + tx.hash, life: 5000});
 				this.mintDialog = false
