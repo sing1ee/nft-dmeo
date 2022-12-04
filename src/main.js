@@ -94,6 +94,8 @@ import TreeSelect from 'primevue/treeselect';
 import TreeTable from 'primevue/treetable';
 import TriStateCheckbox from 'primevue/tristatecheckbox';
 
+import Clipboard from 'v-clipboard3';
+
 import CodeHighlight from './AppCodeHighlight';
 import BlockViewer from './BlockViewer';
 import * as ethers from 'ethers'
@@ -109,6 +111,8 @@ app.config.globalProperties.$appState = reactive({ theme: 'lara-light-indigo', d
 
 app.provide(/* key */ 'message', /* value */ 'hello!')
 app.provide("ethers", ethers)
+
+app.use(Clipboard)
 
 app.use(PrimeVue, { ripple: true, inputStyle: 'outlined' });
 app.use(ConfirmationService);

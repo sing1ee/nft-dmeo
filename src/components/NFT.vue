@@ -2,7 +2,7 @@
 	<div class="grid">
 		<div class="col-12">
 			<div class="card">
-				<h5>NFT List</h5>
+				<h5>NFT Explorer</h5>
                 <Toast />
 				<ProgressBar v-if="loading" mode="indeterminate"/>
 				<Dialog header="Claim ValueLink" v-model:visible="claimDisplay" :breakpoints="{'960px': '75vw'}" :style="{width: '30vw'}" :modal="true">
@@ -35,7 +35,10 @@
 								<img :src="slotProps.data.image" :alt="slotProps.data.name" class="my-4 md:my-0 w-9 md:w-10rem shadow-2 mr-5" />
 								<div class="flex-1 text-center md:text-left">
 									<div class="font-bold text-2xl">{{slotProps.data.name}}</div>
-									<div class="mb-3">{{slotProps.data.description}}</div>
+									<div class="mb-3">
+										<Chip :label="slotProps.data.description" icon="pi pi-link" class="mr-2 mb-2" />
+										<Button icon="pi pi-copy" class="p-button-text" v-clipboard:copy="slotProps.data.uri.toString()" v-clipboard:success="onCopy" v-clipboard:error="onError"></Button>
+									</div>
 									<Rating :modelValue="slotProps.data.rating" :readonly="true" :cancel="false" class="mb-2"></Rating>
 									<div class="flex align-items-center">
 										<i class="pi pi-tag mr-2"></i>
@@ -65,7 +68,10 @@
 								<div class="text-center">
 									<img :src="slotProps.data.image" :alt="slotProps.data.name" class="w-9 shadow-2 my-3 mx-0"/>
 									<div class="text-2xl font-bold">{{slotProps.data.name}}</div>
-									<div class="mb-3">{{slotProps.data.description}}</div>
+									<div class="mb-3" >
+										<Chip :label="slotProps.data.description" icon="pi pi-link" class="mr-2 mb-2" />
+										<Button icon="pi pi-copy" class="p-button-text" v-clipboard:copy="slotProps.data.uri.toString()" v-clipboard:success="onCopy" v-clipboard:error="onError"></Button>
+									</div>
 									<Rating :modelValue="slotProps.data.rating" :readonly="true" :cancel="false"></Rating>
 								</div>
 								<div class="flex align-items-center justify-content-between">
@@ -148,6 +154,8 @@
 			},
             async listNFTs()  {
                 const contract = this.nftContracts[this.categoryKey]
+				const { chainId } = await this.provider.getNetwork()
+				const contractAddress = await this.nftService.getContractAddress(this.categoryKey)
                 const size = await contract.totalSupply()
 				this.loading = true
                 const list = []
@@ -156,17 +164,18 @@
                     const projectUri = this.projects[this.categoryKey](tokenId)
                     console.log(projectUri)
                     const resp = await axios.get(projectUri)
-                    console.log(resp)
+					const nftUri = new NFTUri(chainId, contractAddress, "" + tokenId)
                     list.push({
                         "id": "" + tokenId,
                         "code": "v435nn85n",
                         "name": resp.data.name,
-                        "description": resp.data.description | "",
+                        "description": nftUri.toSlimString(),
                         "image": resp.data.image,
                         "price": Math.ceil(Math.random()*10),
                         "category": this.categoryKey,
                         "inventoryStatus": "INSTOCK",
-                        "rating": tokenId.toNumber() % 5
+                        "rating": tokenId.toNumber() % 5,
+						"uri": nftUri
                     })
                 }
                 this.dataviewValue = list;
@@ -176,7 +185,7 @@
                 const signer = this.provider.getSigner()
                 const address = await signer.getAddress()
                 const contract = this.nftContracts[this.categoryKey]
-                console.log('start mint：', this.categoryKey)
+                console.log('start mint', this.categoryKey)
                 const name = await contract.name()
                 const total = await contract.totalSupply()
                 console.log('minting', name, total.toNumber(), "to", address)
@@ -201,9 +210,7 @@
                 const contract = this.nftContracts[this.valuelinkType]
 				const name = await contract.name()
                 const totalClaims = await contract.totalClaims()
-				const { chainId } = await this.provider.getNetwork()
-				const contractAddress = await this.nftService.getContractAddress(this.valuelinkType)
-				const uftUri = new NFTUri(chainId, contractAddress, this.selectedToken.id)
+				const uftUri = this.selectedToken.uri
 				console.log('start claim', this.valuelinkType, name, totalClaims.toNumber(), uftUri.toString())
 				const withSigner = contract.connect(signer)
 				const tx = await withSigner.claim(uftUri.toString(), 1000)
@@ -211,10 +218,18 @@
                     // Emitted when the transaction has been mined
                     console.log("txed:", tx)
                     this.$toast.add({severity:'info', summary: 'Claimd', detail:'' + tx.transactionHash, life: 5000});
+					this.loading = false
                 })
                 this.$toast.add({severity:'info', summary: 'Claiming', detail:'' + tx.hash, life: 5000});
 				this.claimDisplay = false
+				this.loading = true
 
+			},
+			onCopy(params) {
+				console.log('onCopy', params)
+			},
+			onError(params) {
+				console.log('onError', params)
 			}
 		}
 	}
