@@ -88,21 +88,18 @@
 </template>
 
 <script>
-    import NFTService from "../service/NFTService"
 	import NFTUri from "../common/NFTURi"
     import axios from 'axios'
+	import { useContracts } from '../stores/contracts'
 
 	export default {
-        inject: ['message', 'ethers'],
 		data() {
 			return {
 				dataviewValue: null,
 				layout: 'grid',
 				categoryKey: null,
-				categoryOptions: [
-					{label: 'Identity', value: 'Identity'},
-					{label: 'Art', value: 'Art'},
-				],
+				categoryOptions: null,
+				valueLinkOptions: null,
                 projects: {
                     Identity: (tokenId) => {
                         return 'https://metadata.kprverse.com/metadata/' + tokenId + '.json'
@@ -115,36 +112,16 @@
 				claimDisplay: false,
 				selectedToken: null,
 				valuelinkType: null,
-				valueLinkOptions: [
-					{label: 'Authorization', value: 'Authorization'},
-					{label: 'Fans', value: 'Fans'},
-				],
 				vlDesc: {
 					'Authorization': 'Create value link that stands right to use!',
 					'Fans': 'Create value link that stands following relationship!'
-				}
+				},
+				contractState: useContracts()
 			}
 		},
-        nftService: null,
-        provider: null,
-        nftContracts: null,
-		async created() {
-            this.nftService = new NFTService()
-		},
-		async mounted() {
-            this.nftContracts = {}
-            this.provider = new this.ethers.providers.Web3Provider(window.ethereum)
-            this.provider.on("block", (blockNumber) => {
-                console.log("new block",blockNumber)
-            });
-            for (const opt of this.categoryOptions) {
-                const abi = await this.nftService.getNFT(opt.value);
-                this.nftContracts[opt.value] = new this.ethers.Contract(this.nftService.getContractAddress(opt.value), abi.abi, this.provider)
-            }
-			for (const opt of this.valueLinkOptions) {
-                const abi = await this.nftService.getNFT(opt.value);
-                this.nftContracts[opt.value] = new this.ethers.Contract(this.nftService.getContractAddress(opt.value), abi.abi, this.provider)
-            }
+		created() {
+			this.categoryOptions = this.contractState.categoryOptions
+			this.valueLinkOptions = this.contractState.valueLinkOptions
 		},
 		methods: {
 			async oncategoryChange(choosedItem){
@@ -153,9 +130,11 @@
                 await this.listNFTs()
 			},
             async listNFTs()  {
-                const contract = this.nftContracts[this.categoryKey]
-				const { chainId } = await this.provider.getNetwork()
-				const contractAddress = await this.nftService.getContractAddress(this.categoryKey)
+				const contractWrapper = this.contractState.getContractByName(this.categoryKey)
+				console.log(contractWrapper)
+                const contract = contractWrapper.signer
+				const chainId = this.contractState.network.chainId
+				const contractAddress = contractWrapper.address
                 const size = await contract.totalSupply()
 				this.loading = true
                 const list = []
@@ -182,16 +161,15 @@
 				this.loading = false;
             },
             async mint() {
-                const signer = this.provider.getSigner()
-                const address = await signer.getAddress()
-                const contract = this.nftContracts[this.categoryKey]
+				const contractWrapper = this.contractState.getContractByName(this.categoryKey)
+                const contract = contractWrapper.signer
+				console.log('wrapper', contractWrapper, contract)
                 console.log('start mint', this.categoryKey)
                 const name = await contract.name()
                 const total = await contract.totalSupply()
-                console.log('minting', name, total.toNumber(), "to", address)
-                const withSigner = contract.connect(signer)
-                const tx = await withSigner.mint(address)
-                this.provider.once(tx.hash, (tx) => {
+                console.log('minting', name, total.toNumber(), "to", contractWrapper.signerAddress)
+                const tx = await contract.mint(contractWrapper.signerAddress)
+                this.contractState.provider.once(tx.hash, (tx) => {
                     // Emitted when the transaction has been mined
                     console.log("txed:", tx)
                     this.$toast.add({severity:'info', summary: 'Minted', detail:'' + tx.transactionHash, life: 5000});
@@ -206,15 +184,15 @@
 				this.claimDisplay = true
 			},
 			async claim() {
-				const signer = this.provider.getSigner()
-                const contract = this.nftContracts[this.valuelinkType]
+				const contractWrapper = this.contractState.getContractByName(this.valuelinkType)
+                const contract = contractWrapper.signer
 				const name = await contract.name()
                 const totalClaims = await contract.totalClaims()
 				const uftUri = this.selectedToken.uri
 				console.log('start claim', this.valuelinkType, name, totalClaims.toNumber(), uftUri.toString())
-				const withSigner = contract.connect(signer)
-				const tx = await withSigner.claim(uftUri.toString(), 1000)
-				this.provider.once(tx.hash, (tx) => {
+				// const withSigner = contract.connect(signer)
+				const tx = await contract.claim(uftUri.toString(), 1000)
+				this.contractState.provider.once(tx.hash, (tx) => {
                     // Emitted when the transaction has been mined
                     console.log("txed:", tx)
                     this.$toast.add({severity:'info', summary: 'Claimd', detail:'' + tx.transactionHash, life: 5000});

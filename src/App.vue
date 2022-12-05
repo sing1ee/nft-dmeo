@@ -25,6 +25,7 @@ import AppMenu from './AppMenu.vue';
 import AppConfig from './AppConfig.vue';
 import AppFooter from './AppFooter.vue';
 
+
 export default {
     emits: ['change-theme'],
     data() {

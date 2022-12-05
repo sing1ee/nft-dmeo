@@ -26,6 +26,7 @@
 </template>
 
 <script>
+import { useContracts } from './stores/contracts'
 export default {
 	data() {
 		return {
@@ -37,16 +38,19 @@ export default {
 			},
 			currentAccount: 'Connect wallet',
 			chainId: 'Choose Network',
+			contractState: useContracts()
 		}
 	},
-	created() {
+	async created() {
 		for(const k in this.networks) {
 			this.dropdownItems.push({'code': k, 'name': this.networks[k]})
 		}
-		console.log("wallet connect: ", window.ethereum.isConnected())
-		if(!window.ethereum.isConnected()) {
-			this.connect()
+		console.log("wallet connect: ", this.contractState.isConnected)
+		if (this.contractState.isConnected) {
+			this.chainId = this.contractState.network.chainId
+			this.currentAccount = this.contractState.account
 		}
+
 	},
     methods: {
         onMenuToggle(event) {
@@ -65,7 +69,6 @@ export default {
 				console.log(this.chainId,'toast')
 				this.dropdownItem = {'code': this.chainId, 'name': this.networks[this.chainId]}
 				this.$toast.add({severity:'success', summary: 'Network Change', detail:'Network Change to ' + this.networks[_chainId], life: 3000})
-				// window.location.reload();
 			}
 		},
 		handleAccountsChanged(accounts) {
@@ -76,42 +79,23 @@ export default {
 			}
 		},
 		async connect() {
-			if (window.ethereum) {
-				window.ethereum.on('chainChanged', this.handleChainChanged)
-				window.ethereum.on('accountsChanged', this.handleAccountsChanged)
-				const chainId = await window.ethereum.request({
-					method: 'eth_chainId'
-				});
-				this.handleChainChanged(chainId);
-				window.ethereum.request({
-					method: 'eth_requestAccounts'
-				})
-				.then(this.handleAccountsChanged)
-				.catch((err) => {
-							if (err.code === 4001) {
-								// EIP-1193 userRejectedRequest error
-								// If this happens, the user rejected the connection request.
-								this.$toast.add({severity:'error', summary: 'Wallet Change', detail:err.message, life: 3000})
-								console.log('Please connect to MetaMask.');
-							} else {
-								console.error(err);
-							}
-						})
+			if(!this.contractState.isConnected) {
+				const metamask = await this.contractState.useMetamask()
+				if (!metamask) {
+					this.$toast.add({severity:'error', summary: 'Wallet', detail: 'Install metamask', life: 3000})
 				} else {
-					this.$toast.add({severity:'warn', summary: 'Wallet Info', detail: 'Install Metamask!', life: 3000})
+					this.currentAccount = this.contractState.account
+					console.log(this.chainId, this.currentAccount)
+					this.contractState.ethereum.on('chainChanged', this.handleChainChanged)
+					this.contractState.ethereum.on('accountsChanged', this.handleAccountsChanged)
+					this.handleChainChanged(this.contractState.network.chainId)
 				}
-			},
+			}
+		},
 		async switchNetwork() {	
-			try {
-				await window.ethereum.request({
-					method: 'wallet_switchEthereumChain',
-					params: [{ chainId:  this.dropdownItem.code}],
-				});
-			} catch (switchError) {
-				// This error code indicates that the chain has not been added to MetaMask.
-				if (switchError.code === 4902) {
-					this.$toast.add({severity:'error', summary: 'Wallet Info', detail: 'Add network to Metamask!', life: 3000})
-				}
+			const code = await this.contractState.switchNetwork(this.dropdownItem.code)
+			if (code === 1) {
+				this.$toast.add({severity:'warn', summary: 'Network', detail: 'Add Network', life: 3000})
 			}
 		},
     },

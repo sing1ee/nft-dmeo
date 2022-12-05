@@ -32,8 +32,8 @@
 					</template>
 					<template #list="slotProps">
 						<div class="col-12">
-							<div class="flex flex-column md:flex-row align-items-center p-3 w-full">
-								<img :src="slotProps.data.image" :alt="slotProps.data.name" class="my-4 md:my-0 w-9 md:w-10rem shadow-2 mr-5" />
+							<div class="flex flex-column md:flex-row align-items-center p-3 w-full" @click="showValueLink($event, slotProps.data.uri)">
+								<img id="img" :src="slotProps.data.image" :alt="slotProps.data.name" class="my-4 md:my-0 w-9 md:w-10rem shadow-2 mr-5" />
 								<div class="flex-1 text-center md:text-left">
 									<div class="font-bold text-2xl">{{slotProps.data.name}}</div>
 									<div class="mb-3">{{slotProps.data.description}}</div>
@@ -63,8 +63,8 @@
 									</div>
 									<span :class="'product-badge status-'+slotProps.data.inventoryStatus.toLowerCase()">{{slotProps.data.inventoryStatus}}</span>
 								</div>
-								<div class="text-center">
-									<img :src="slotProps.data.image" :alt="slotProps.data.name" class="w-9 shadow-2 my-3 mx-0"/>
+								<div class="text-center" @click="showValueLink($event, slotProps.data.uri)">
+									<img id="img" :src="slotProps.data.image" :alt="slotProps.data.name" class="w-9 shadow-2 my-3 mx-0"/>
 									<div class="text-2xl font-bold">{{slotProps.data.name}}</div>
 									<div class="mb-3">{{slotProps.data.description}}</div>
 									<Rating :modelValue="slotProps.data.rating" :readonly="true" :cancel="false"></Rating>
@@ -83,26 +83,20 @@
 </template>
 
 <script>
-    import NFTService from "../service/NFTService"
 	import NFTUri from "../common/NFTURi"
     import axios from 'axios'
+	import { useContracts } from '../stores/contracts'
 
 	export default {
-        inject: ['message', 'ethers'],
 		data() {
 			return {
+				contractState: useContracts(),
 				dataviewValue: null,
 				layout: 'grid',
 				categoryKey: null,
-				categoryOptions: [
-					{label: 'Identity', value: 'Identity'},
-					{label: 'Art', value: 'Art'},
-				],
+				categoryOptions: null,
 				valueLinkType: null,
-				valueLinkOptions: [
-					{label: 'Authorization', value: 'Authorization'},
-					{label: 'Fans', value: 'Fans'},
-				],
+				valueLinkOptions: null,
                 projects: {
                     Identity: (tokenId) => {
                         return 'https://metadata.kprverse.com/metadata/' + tokenId + '.json'
@@ -115,56 +109,33 @@
 				address2Contract: null,
 				selectedNFT: null,
 				endNFTUri: null,
-				mintDialog: false
+				mintDialog: false,
+				valueLinkContract: null
 			}
 		},
-        nftService: null,
-        provider: null,
-        nftContracts: null,
-		async created() {
-            this.nftService = new NFTService()
-		},
-		async mounted() {
-            this.nftContracts = {}
-			this.address2Contract = {}
-            this.provider = new this.ethers.providers.Web3Provider(window.ethereum)
-            this.provider.on("block", (blockNumber) => {
-                console.log("new block",blockNumber)
-            });
-            for (const opt of this.categoryOptions) {
-                const abi = await this.nftService.getNFT(opt.value);
-				const address = await this.nftService.getContractAddress(opt.value)
-                this.nftContracts[opt.value] = new this.ethers.Contract(address, abi.abi, this.provider)
-				this.address2Contract[address] = this.nftContracts[opt.value]
-            }
-			for (const opt of this.valueLinkOptions) {
-                const abi = await this.nftService.getNFT(opt.value);
-				const address = await this.nftService.getContractAddress(opt.value)
-                this.nftContracts[opt.value] = new this.ethers.Contract(address, abi.abi, this.provider)
-				this.address2Contract[address] = this.nftContracts[opt.value]
-            }
+		created() {
+			this.categoryOptions = this.contractState.categoryOptions
+			this.valueLinkOptions = this.contractState.valueLinkOptions
 		},
 		methods: {
 			async onVLChange(choosedItem){
-                console.log(choosedItem.value)
 				this.dataviewValue = null;
+				console.log(choosedItem.value, this.valueLinkType)
+				const contractWrapper = this.contractState.getContractByName(choosedItem.value)
+                this.valueLinkContract = contractWrapper.signer
                 await this.listNFTs()
 			},
             async listNFTs()  {
-                const contract = this.nftContracts[this.valueLinkType]
-                const size = await contract.totalClaims()
 				this.loading = true
+                const size = await  this.valueLinkContract.totalClaims()
                 const list = []
                 for (let index = size - 1; index >= 0; index--) {
-                    const startNftUri = await contract.claimByIndex(index)
+                    const startNftUri = await  this.valueLinkContract.claimByIndex(index)
 					console.log(index, startNftUri)
 					const nftUri = NFTUri.parse(startNftUri)
 					//we need cross chain service
 					console.log('parse', nftUri.toString())
-					for (const c of Object.keys(this.address2Contract)) {
-						console.log(c)
-					}
-					const categoryKey = await this.address2Contract[nftUri.contractAddress].name()
+					const categoryKey = this.contractState.addressName(nftUri.contractAddress)
 					console.log("key", categoryKey)
                     const projectUri = this.projects[categoryKey](nftUri.index)
                     console.log(projectUri)
@@ -194,21 +165,23 @@
             async mint() {
 				this.loading = true
 				console.log(this.selectedNFT)
-                const signer = this.provider.getSigner()
-                const contract = this.nftContracts[this.valueLinkType]
                 console.log('start mint', this.valueLinkType)
-                const total = await contract.outLinksNumOf(this.selectedNFT.toString())
+                const total = await  this.valueLinkContract.outLinksNumOf(this.selectedNFT.toString())
                 console.log('minting', total.toNumber())
-                const withSigner = contract.connect(signer)
-                const tx = await withSigner.mint(this.selectedNFT.toString(), this.endNFTUri)
-                this.provider.once(tx.hash, (tx) => {
+                const tx = await  this.valueLinkContract.mint(this.selectedNFT.toString(), this.endNFTUri)
+                this.contractState.provider.once(tx.hash, (tx) => {
                     console.log("txed:", tx)
                     this.$toast.add({severity:'info', summary: 'Value Link Minted', detail:'' + tx.transactionHash, life: 5000});
 					this.loading = false
                 })
                 this.$toast.add({severity:'info', summary: 'Value Link Minting', detail:'' + tx.hash, life: 5000});
 				this.mintDialog = false
-            }
+            },
+			showValueLink(e, nftUri) {
+				if (e.target.id === 'img') {
+					console.log('show value link', nftUri.toString())
+				}
+			}
 		}
 	}
 </script>
