@@ -19,7 +19,7 @@
 						<Button label="Mint" @click="mint()" icon="pi pi-check" class="p-button-outlined"/>
 					</template>
 				</Dialog>
-				<Dialog header="Value Link Network" v-model:visible="networkDialog" :breakpoints="{'960px': '75vw'}" :style="{width: '80vw', height: '60vw'}" :modal="true">
+				<Dialog header="Value Link Network" v-model:visible="networkDialog" :breakpoints="{'960px': '75vw'}" :style="{width: '80vw'}" :contentStyle="{minHeight: '450px'}" :modal="true">
 					<Network :nftUri="exploreNFT" :contractType="valueLinkType"/>
 					<template #footer>
 						<Button label="Close" @click="()=>{networkDialog=false}" icon="pi pi-check" class="p-button-outlined"/>

@@ -96,7 +96,6 @@
 		</div>
 	</div>
 </template>
-
 <script>
 	import ProductService from "../service/ProductService";
 
@@ -161,4 +160,5 @@
 
 <style scoped lang="scss">
 @import '../assets/demo/badges.scss';
+
 </style>
