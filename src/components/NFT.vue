@@ -100,14 +100,7 @@
 				categoryKey: null,
 				categoryOptions: null,
 				valueLinkOptions: null,
-                projects: {
-                    Identity: (tokenId) => {
-                        return 'https://metadata.kprverse.com/metadata/' + tokenId + '.json'
-                    },
-                    Art: (tokenId) => {
-                        return 'https://genesis.mypinata.cloud/ipfs/QmYxuHhAoLT3gAWaq39RKDFRGKiirsxCgryLgrA44cobV1/' + tokenId
-                    }
-                },
+                projects: null,
 				loading: false,
 				claimDisplay: false,
 				selectedToken: null,
@@ -122,6 +115,7 @@
 		created() {
 			this.categoryOptions = this.contractState.categoryOptions
 			this.valueLinkOptions = this.contractState.valueLinkOptions
+			this.projects = this.contractState.projects
 		},
 		methods: {
 			async oncategoryChange(choosedItem){

@@ -19,6 +19,12 @@
 						<Button label="Mint" @click="mint()" icon="pi pi-check" class="p-button-outlined"/>
 					</template>
 				</Dialog>
+				<Dialog header="Value Link Network" v-model:visible="networkDialog" :breakpoints="{'960px': '75vw'}" :style="{width: '80vw', height: '60vw'}" :modal="true">
+					<Network :nftUri="exploreNFT" :contractType="valueLinkType"/>
+					<template #footer>
+						<Button label="Close" @click="()=>{networkDialog=false}" icon="pi pi-check" class="p-button-outlined"/>
+					</template>
+				</Dialog>
 				<DataView :value="dataviewValue" :layout="layout" :paginator="true" :rows="9">
 					<template #header>
 						<div class="grid grid-nogutter">
@@ -86,8 +92,12 @@
 	import NFTUri from "../common/NFTURi"
     import axios from 'axios'
 	import { useContracts } from '../stores/contracts'
+	import Network from './Network.vue'
 
 	export default {
+		components: {
+			'Network': Network
+		},
 		data() {
 			return {
 				contractState: useContracts(),
@@ -97,25 +107,21 @@
 				categoryOptions: null,
 				valueLinkType: null,
 				valueLinkOptions: null,
-                projects: {
-                    Identity: (tokenId) => {
-                        return 'https://metadata.kprverse.com/metadata/' + tokenId + '.json'
-                    },
-                    Art: (tokenId) => {
-                        return 'https://genesis.mypinata.cloud/ipfs/QmYxuHhAoLT3gAWaq39RKDFRGKiirsxCgryLgrA44cobV1/' + tokenId
-                    }
-                },
+                projects: null,
 				loading: false,
 				address2Contract: null,
 				selectedNFT: null,
 				endNFTUri: null,
 				mintDialog: false,
-				valueLinkContract: null
+				valueLinkContract: null,
+				networkDialog: false,
+				exploreNFT: null,
 			}
 		},
 		created() {
 			this.categoryOptions = this.contractState.categoryOptions
 			this.valueLinkOptions = this.contractState.valueLinkOptions
+			this.projects = this.contractState.projects
 		},
 		methods: {
 			async onVLChange(choosedItem){
@@ -139,21 +145,25 @@
 					console.log("key", categoryKey)
                     const projectUri = this.projects[categoryKey](nftUri.index)
                     console.log(projectUri)
-                    const resp = await axios.get(projectUri)
-                    console.log(resp)
-                    list.push({
-                        "id": "" + nftUri.index,
-                        "code": "v435nn85n",
-                        "name": resp.data.name,
-                        "description": `Owned by`,
-                        "image": resp.data.image,
-                        "price": Math.ceil(Math.random()*10),
-                        "category": `${this.valueLinkType} from ${categoryKey}`,
-						"quantity": 1000,
-                        "inventoryStatus": "INSTOCK",
-                        "rating": parseInt(nftUri.index) % 5,
-						"uri": nftUri
-                    })
+                    try {
+						const resp = await axios.get(projectUri)
+						console.log(resp)
+						list.push({
+							"id": "" + nftUri.index,
+							"code": "v435nn85n",
+							"name": resp.data.name,
+							"description": `Owned by`,
+							"image": resp.data.image,
+							"price": Math.ceil(Math.random()*10),
+							"category": `${this.valueLinkType} from ${categoryKey}`,
+							"quantity": 1000,
+							"inventoryStatus": "INSTOCK",
+							"rating": parseInt(nftUri.index) % 5,
+							"uri": nftUri
+						})
+					} catch (e) {
+						console.log(e)
+					}
                 }
                 this.dataviewValue = list;
 				this.loading = false;
@@ -180,6 +190,8 @@
 			showValueLink(e, nftUri) {
 				if (e.target.id === 'img') {
 					console.log('show value link', nftUri.toString())
+					this.networkDialog = true
+					this.exploreNFT = nftUri
 				}
 			}
 		}

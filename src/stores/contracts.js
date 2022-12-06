@@ -69,6 +69,16 @@ export const useContracts = defineStore('contracts', {
                 {label: 'Authorization', value: 'Authorization'},
                 {label: 'Fans', value: 'Fans'},
             ]
+        },
+        projects() {
+            return {
+                Identity: (tokenId) => {
+                    return 'https://metadata.kprverse.com/metadata/' + tokenId + '.json'
+                },
+                Art: (tokenId) => {
+                    return 'https://genesis.mypinata.cloud/ipfs/QmYxuHhAoLT3gAWaq39RKDFRGKiirsxCgryLgrA44cobV1/' + tokenId
+                }
+            }
         }
     },
     actions: {

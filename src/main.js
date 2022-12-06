@@ -4,9 +4,11 @@ import 'primeicons/primeicons.css';
 import 'prismjs/themes/prism-coy.css';
 import './assets/styles/layout.scss';
 import './assets/demo/flags/flags.css';
+import "v-network-graph/lib/style.css"
 
 import { createApp, reactive } from 'vue';
 import { createPinia } from 'pinia'
+import VNetworkGraph from "v-network-graph"
 import router from './router';
 import AppWrapper from './AppWrapper.vue';
 import PrimeVue from 'primevue/config';
@@ -114,6 +116,7 @@ app.config.globalProperties.$appState = reactive({ theme: 'lara-light-indigo', d
 
 app.provide("ethers", ethers)
 app.use(pinia)
+app.use(VNetworkGraph)
 app.use(Clipboard)
 
 app.use(PrimeVue, { ripple: true, inputStyle: 'outlined' });
