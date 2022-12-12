@@ -63,7 +63,6 @@
 	import * as vNG from "v-network-graph"
 	import { useContracts } from '../stores/contracts'
 	import NFTUri from "../common/NFTURi"
-	import axios from 'axios'
 	import dagre from "dagre/dist/dagre.min.js"
 
 	export default {
@@ -155,7 +154,7 @@
 			const outLinksNum = await contract.outLinksNumOf(startUri)
 			const startContractName = this.contractState.addressName(this.nftUri.contractAddress)
 			const startNode = `${startContractName}#${this.nftUri.index}`
-			const imgUri = await this.getImg(this.projects[startContractName](this.nftUri.index))
+			const imgUri = await this.getImg(startContractName, this.nftUri.index)
 			this.nodes[startNode] = {name: startNode, size: this.nodeSize, color: "blue", face: imgUri}
 			const filter = {}
 			filter[startNode] = 1
@@ -178,7 +177,7 @@
 				this.edges[`link->end#${index}`] = {source: linkNode, target: endNode}
 				if (!filter[endNode]) {
 					filter[endNode] = 1
-					const imgUri = await this.getImg(this.projects[endContractName](endNFTUri.index))
+					const imgUri = await this.getImg(endContractName, endNFTUri.index)
 					this.nodes[endNode] = {name: endNode, size: this.nodeSize, color: "blue", face: imgUri}
 				}
 			}
@@ -187,10 +186,9 @@
 		computed:{
 		},
 		methods: {
-			async getImg(metadataUri) {
+			async getImg(key, index) {
 				try {
-					const resp = await axios.get(metadataUri, {timeout: 1000 * 10})
-					return resp.data.image
+					return `images/nft/${key}/${index}.png`
 				} catch (e) {
 					console.log(e)
 				}
