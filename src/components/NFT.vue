@@ -99,7 +99,6 @@
 				categoryKey: null,
 				categoryOptions: null,
 				valueLinkOptions: null,
-                projects: null,
 				loading: false,
 				claimDisplay: false,
 				selectedToken: null,
@@ -114,7 +113,6 @@
 		created() {
 			this.categoryOptions = this.contractState.categoryOptions
 			this.valueLinkOptions = this.contractState.valueLinkOptions
-			this.projects = this.contractState.projects
 		},
 		methods: {
 			async oncategoryChange(choosedItem){
@@ -133,8 +131,6 @@
                 const list = []
                 for (let index = size - 1; index >= 0; index--) {
                     const tokenId = await contract.tokenByIndex(index)
-                    const projectUri = this.projects[this.categoryKey](tokenId)
-                    console.log(projectUri)
 					const nftUri = new NFTUri(chainId, contractAddress, "" + tokenId)
                     list.push({
                         "id": "" + tokenId,

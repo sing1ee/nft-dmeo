@@ -106,7 +106,6 @@
 				categoryOptions: null,
 				valueLinkType: null,
 				valueLinkOptions: null,
-                projects: null,
 				loading: false,
 				address2Contract: null,
 				selectedNFT: null,
@@ -120,7 +119,6 @@
 		created() {
 			this.categoryOptions = this.contractState.categoryOptions
 			this.valueLinkOptions = this.contractState.valueLinkOptions
-			this.projects = this.contractState.projects
 		},
 		methods: {
 			async onVLChange(choosedItem){
@@ -142,8 +140,6 @@
 					console.log('parse', nftUri.toString())
 					const categoryKey = this.contractState.addressName(nftUri.contractAddress)
 					console.log("key", categoryKey)
-                    const projectUri = this.projects[categoryKey](nftUri.index)
-                    console.log(projectUri)
                     list.push({
 							"id": "" + nftUri.index,
 							"code": "v435nn85n",
