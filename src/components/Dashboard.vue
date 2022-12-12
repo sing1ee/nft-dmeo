@@ -30,7 +30,7 @@
 				<span class="text-500">since last week</span>
 			</div>
 		</div>
-		<div class="col-12 lg:col-6 xl:col-3">
+		<!-- <div class="col-12 lg:col-6 xl:col-3">
 			<div class="card mb-0">
 				<div class="flex justify-content-between mb-3">
 					<div>
@@ -59,9 +59,9 @@
 				<span class="text-green-500 font-medium">85 </span>
 				<span class="text-500">responded</span>
 			</div>
-		</div>
+		</div> -->
 
-	<div class="col-12 xl:col-6">
+	<!-- <div class="col-12 xl:col-6">
 		<div class="card">
 			<h5>Recent Sales</h5>
 			<DataTable :value="products" :rows="5" :paginator="true" responsiveLayout="scroll">
@@ -237,7 +237,7 @@
 				</a>
 			</div>
 		</div>
-	</div>
+	</div> -->
 	</div>
 </template>
 

@@ -89,7 +89,6 @@
 
 <script>
 	import NFTUri from "../common/NFTURi"
-    import axios from 'axios'
 	import { useContracts } from '../stores/contracts'
 
 	export default {
@@ -136,14 +135,13 @@
                     const tokenId = await contract.tokenByIndex(index)
                     const projectUri = this.projects[this.categoryKey](tokenId)
                     console.log(projectUri)
-                    const resp = await axios.get(projectUri)
 					const nftUri = new NFTUri(chainId, contractAddress, "" + tokenId)
                     list.push({
                         "id": "" + tokenId,
                         "code": "v435nn85n",
-                        "name": resp.data.name,
+                        "name": `${this.categoryKey}#${tokenId}`,
                         "description": nftUri.toSlimString(),
-                        "image": resp.data.image,
+                        "image": `images/nft/${this.categoryKey}/${tokenId}.png`,
                         "price": Math.ceil(Math.random()*10),
                         "category": this.categoryKey,
                         "inventoryStatus": "INSTOCK",

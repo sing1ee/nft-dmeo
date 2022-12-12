@@ -36,3 +36,7 @@ yarn-error.log*
 contracts/.env
 contracts/master.json
 contracts/node_modules
+
+*.tar.gz
+
+public/images/nft

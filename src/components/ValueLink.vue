@@ -90,7 +90,6 @@
 
 <script>
 	import NFTUri from "../common/NFTURi"
-    import axios from 'axios'
 	import { useContracts } from '../stores/contracts'
 	import Network from './Network.vue'
 
@@ -145,15 +144,12 @@
 					console.log("key", categoryKey)
                     const projectUri = this.projects[categoryKey](nftUri.index)
                     console.log(projectUri)
-                    try {
-						const resp = await axios.get(projectUri)
-						console.log(resp)
-						list.push({
+                    list.push({
 							"id": "" + nftUri.index,
 							"code": "v435nn85n",
-							"name": resp.data.name,
+							"name": `${categoryKey}#${index}`,
 							"description": `Owned by`,
-							"image": resp.data.image,
+							"image": `images/nft/${categoryKey}/${index}.png`,
 							"price": Math.ceil(Math.random()*10),
 							"category": `${this.valueLinkType} from ${categoryKey}`,
 							"quantity": 1000,
@@ -161,9 +157,6 @@
 							"rating": parseInt(nftUri.index) % 5,
 							"uri": nftUri
 						})
-					} catch (e) {
-						console.log(e)
-					}
                 }
                 this.dataviewValue = list;
 				this.loading = false;
