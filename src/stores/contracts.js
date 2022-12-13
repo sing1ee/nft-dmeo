@@ -160,6 +160,28 @@ export const useContracts = defineStore('contracts', {
                 return 2
 			}
 		},
+        async addNetwork(chainId) {	
+			try {
+                let chain = this.chainIds[0]
+                for (let index = 0; index < this.chainIds.length; index++) {
+                    const element = this.chainIds[index];
+                    if (element.chainId === chainId) {
+                        chain = element
+                    }
+                }
+				await this.ethereum.request({
+					method: 'wallet_addEthereumChain',
+					params: [chain],
+				});
+                return 0
+			} catch (e) {
+				// This error code indicates that the chain has not been added to MetaMask.
+				if (e.code === -32602) {
+                    return 1
+				}
+                return 2
+			}
+		},
         async useMetamask() {
             this.nameAddress = KeyAddress
             const provider = await detectEthereumProvider();

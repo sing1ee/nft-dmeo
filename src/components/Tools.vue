@@ -4,6 +4,8 @@
 			<div class="card">
 				<h5>Networks</h5>
 				<Button label="Add Polygon mumbai to Metamask" class="mr-2 mb-2" @click="addNetwork('0x13881')"></Button>
+				<Button label="Add BSC to Metamask" class="mr-2 mb-2" @click="addNetwork('0x38')"></Button>
+				<Button label="Add Maas - TestNet to Metamask" class="mr-2 mb-2" @click="addNetwork('0x440')"></Button>
 			</div>
 		</div>
 	</div>
@@ -24,11 +26,11 @@
 			}
 		},
 		methods: {
-			addNetwork(chainId) {
-				this.contractState.ethereum.request({
-					method: 'wallet_addEthereumChain', // Metamask的api名称
-					params: [this.chainIds[chainId]]
-				})
+			async addNetwork(chainId) {
+				const code = await this.contractState.addNetwork(chainId)
+				if (code === 1) {
+					this.$toast.add({severity:'warn', summary: 'Network', detail:'duplicated chainId', life: 5000});
+				}
 			},
 		}
 	}
