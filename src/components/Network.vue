@@ -61,24 +61,23 @@
 <script>
 	import { reactive } from "vue"
 	import * as vNG from "v-network-graph"
+	import {
+		ForceLayout
+	} from "v-network-graph/lib/force-layout"
 	import { useContracts } from '../stores/contracts'
 	import NFTUri from "../common/NFTURi"
-	import dagre from "dagre/dist/dagre.min.js"
 
 	export default {
 		props: ['nftUri', 'contractType'],
 		components: {  },
 		data() {
 			return {
-				nodeSize: 32,
+				nodeSize: 40,
 				projects: null,
 				nodes: {
 				},
 				edges: {
 				},
-				layouts: reactive({
-					nodes: {},
-				}),
 				configs: {
 
 				},
@@ -90,6 +89,21 @@
 			this.projects = this.contractState.projects
 
 			const initialConfigs = vNG.defineConfigs({
+				view: {
+					layoutHandler: new ForceLayout({
+						positionFixedByDrag: false,
+						positionFixedByClickWithAltKey: true,
+						// * The following are the default parameters for the simulation.
+						// * You can customize it by uncommenting below.
+						createSimulation: (d3, nodes, edges) => {
+							const forceLink = d3.forceLink(edges).id(d => d.id)
+							return d3.forceSimulation(nodes).force("edge", forceLink.distance(200)).force("charge", d3.forceManyBody())
+								.force("collide", d3.forceCollide(100).strength(0.2))
+								.force("center", d3.forceCenter().strength(0.05))
+								.alphaMin(0.001)
+						}
+					}),
+				},
 				node: {
 					normal: {
 						type: "circle",
@@ -144,7 +158,7 @@
 							color: null,
 						},
 					},
-				},
+				}
 			})
 			this.configs = reactive(initialConfigs)
 
@@ -153,7 +167,7 @@
 			const startUri = this.nftUri.toString()
 			const outLinksNum = await contract.outLinksNumOf(startUri)
 			const startContractName = this.contractState.addressName(this.nftUri.contractAddress)
-			const startNode = `${startContractName}#${this.nftUri.index}`
+			const startNode = `StartNode:${startContractName}#${this.nftUri.index}`
 			const imgUri = await this.getImg(startContractName, this.nftUri.index)
 			this.nodes[startNode] = {name: startNode, size: this.nodeSize, color: "blue", face: imgUri}
 			const filter = {}
@@ -168,11 +182,11 @@
 				
 				
 				// start -> linkNode
-				// linkNode -> start
+				// linkNode -> end
 				this.edges[`start->link#${index}`] = {source: startNode, target: linkNode}
 				if (!filter[linkNode]) {
 					filter[linkNode] = 1
-					this.nodes[linkNode] = {name: linkNode, size: this.nodeSize / 2, color: "gray", face:"images/themes/arya-blue.png"}
+					this.nodes[linkNode] = {name: linkNode, size: this.nodeSize/2, color: "gray", face:"images/themes/arya-blue.png"}
 				}
 				this.edges[`link->end#${index}`] = {source: linkNode, target: endNode}
 				if (!filter[endNode]) {
@@ -181,7 +195,6 @@
 					this.nodes[endNode] = {name: endNode, size: this.nodeSize, color: "blue", face: imgUri}
 				}
 			}
-			this.layout("LR")
 		},
 		computed:{
 		},
@@ -194,75 +207,6 @@
 				}
 				return "images/v.png"
 			},
-			layout(direction) {
-				// "TB" | "LR"
-				if (Object.keys(this.nodes).length <= 1 || Object.keys(this.edges).length == 0) {
-					return
-				}
-
-				// convert graph
-				// ref: https://github.com/dagrejs/dagre/wiki
-				const g = new dagre.graphlib.Graph()
-				// Set an object for the graph label
-				g.setGraph({
-					rankdir: direction,
-					nodesep: this.nodeSize * 2,
-					edgesep: this.nodeSize,
-					ranksep: this.nodeSize * 2,
-				})
-				// Default to assigning a new object as a label for each new edge.
-				g.setDefaultEdgeLabel(() => ({}))
-
-				// Add nodes to the graph. The first argument is the node id. The second is
-				// metadata about the node. In this case we're going to add labels to each of
-				// our nodes.
-				Object.entries(this.nodes).forEach(([nodeId, node]) => {
-					g.setNode(nodeId, { label: node.name, width: this.nodeSize, height: this.nodeSize })
-				})
-
-				// Add edges to the graph.
-				Object.values(this.edges).forEach(edge => {
-					g.setEdge(edge.source, edge.target)
-				})
-
-				dagre.layout(g)
-
-				const box  = {
-					top: this.nodeSize*100,
-					bottom: 0,
-					left: this.nodeSize*100,
-					right: 0,
-				}
-				g.nodes().forEach((nodeId) => {
-					// update node position
-					const x = g.node(nodeId).x
-					const y = g.node(nodeId).y
-					this.layouts.nodes[nodeId] = { x, y }
-
-					// calculate bounding box size
-					box.top = Math.min(box.top, y)
-					box.bottom = Math.max(box.bottom, y)
-					box.left = Math.min(box.left, x)
-					box.right = Math.max(box.right, x)
-				})
-
-				const graphMargin = this.nodeSize
-				const viewBox = {
-					top: box.top - graphMargin,
-					bottom: box.bottom + graphMargin,
-					left: box.left - graphMargin,
-					right: box.right + graphMargin,
-				}
-				this.$refs.graph.setViewBox(viewBox)
-			},
-
-			updateLayout(direction) {
-				// "TB" | "LR"
-				// Animates the movement of an element.
-				this.$refs.graph.transitionWhile(() => {
-					this.layout(direction)
-				})
-			}
 		}
 	}
 </script>
