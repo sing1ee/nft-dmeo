@@ -146,13 +146,13 @@ export default {
                 //         }
                 //     ]
                 // },
-                // {
-                //     label: 'Get Started', 
-                //     items: [
-                //         {label: 'Documentation', icon: 'pi pi-fw pi-question', command: () => {window.location = "#/documentation"}},
-                //         {label: 'View Source', icon: 'pi pi-fw pi-search', command: () => {window.location = "https://github.com/primefaces/sakai-vue"}}
-                //     ]
-                // }
+                {
+                    label: 'Get Started', 
+                    items: [
+                        {label: 'Tools', icon: 'pi pi-fw pi-question', to: '/tools'},
+                        {label: 'Get Test Token', icon: 'pi pi-fw pi-search', command: () => {window.location = "https://faucet.polygon.technology/"}}
+                    ]
+                }
             ]
         }
     },

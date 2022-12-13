@@ -79,7 +79,66 @@ export const useContracts = defineStore('contracts', {
                     return 'https://genesis.mypinata.cloud/ipfs/QmYxuHhAoLT3gAWaq39RKDFRGKiirsxCgryLgrA44cobV1/' + tokenId
                 }
             }
-        }
+        },
+        chainIds() {
+            return  [
+                {
+                    chainId: '0x1',
+                    chainName: 'Ethereum Mainnet',
+                    nativeCurrency: {
+                        name: 'ETH',
+                        symbol: 'ETH',
+                        decimals: 18,
+                    },
+                    rpcUrls: ['https://mainnet.infura.io/v3/9aa3d95b3bc440fa88ea12eaa4456161'],
+                    blockExplorerUrls: ['https://etherscan.io'],
+                },
+                {
+                    chainId: '0x13881',
+                    chainName: 'Polygon mumbai',
+                    nativeCurrency: {
+                        name: 'Matic',
+                        symbol: 'Matic',
+                        decimals: 18,
+                    },
+                    rpcUrls: ['https://rpc.web3infra.xyz/rpc/v1/polygon-mumbai/cdmdjd8fl3d2h920qitg'],
+                    blockExplorerUrls: ['https://mumbai.polygonscan.com/'],
+                },
+                {
+                    chainId: '0x38',
+                    chainName: 'Binance Smart Chain',
+                    nativeCurrency: {
+                        name: 'BNB',
+                        symbol: 'BNB',
+                        decimals: 18,
+                    },
+                    rpcUrls: ['https://bsc-dataseed.binance.org/'],
+                    blockExplorerUrls: ['https://bscscan.com/'],
+                },
+                {
+                    chainId: '0x61',
+                    chainName: 'Binance Smart Chain - TestNet',
+                    nativeCurrency: {
+                        name: 'BNB',
+                        symbol: 'BNB',
+                        decimals: 18,
+                    },
+                    rpcUrls: ['https://data-seed-prebsc-1-s1.binance.org:8545/'],
+                    blockExplorerUrls: ['https://testnet.bscscan.com/'],
+                },
+                {
+                    chainId: '0x440',
+                    chainName: 'Maas - TestNet',
+                    nativeCurrency: {
+                        name: 'Maas',
+                        symbol: 'Maas',
+                        decimals: 18,
+                    },
+                    rpcUrls: ['https://maas-test-node.onchain.com/'],
+                    blockExplorerUrls: ['https://maas-test-explorer.onchain.com/'],
+                }
+            ]
+        },
     },
     actions: {
         async initialize() {

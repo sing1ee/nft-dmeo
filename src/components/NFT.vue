@@ -3,7 +3,6 @@
 		<div class="col-12">
 			<div class="card">
 				<h5>NFT Explorer</h5>
-                <Toast />
 				<ProgressBar v-if="loading" mode="indeterminate"/>
 				<Dialog header="Claim ValueLink" v-model:visible="claimDisplay" :breakpoints="{'960px': '75vw'}" :style="{width: '30vw'}" :modal="true">
 					<p class="line-height-3 m-0">

@@ -13,7 +13,7 @@
 			leaveToClass: 'hidden', leaveActiveClass: 'fadeout', hideOnOutsideClick: true}">
 			<i class="pi pi-ellipsis-v"></i>
 		</button>
-		
+		<Toast />
 		<ul class="layout-topbar-menu hidden lg:flex origin-top">
 			<li>
 				<Dropdown class="lg:flex origin-top mr-2 mb-2" id="state" v-model="dropdownItem" :options="dropdownItems" optionLabel="name" placeholder="Select One" @change="switchNetwork"></Dropdown>
@@ -32,16 +32,17 @@ export default {
 		return {
 			dropdownItems: [],
 			dropdownItem: null,
-			networks: {
-				'0x5': 'Goerli',
-				'0x13881': 'Polygon Mumbai'
-			},
+			networks: {},
 			currentAccount: 'Connect wallet',
 			chainId: 'Choose Network',
 			contractState: useContracts()
 		}
 	},
 	async created() {
+		for (const c of this.contractState.chainIds) {
+			this.networks[c.chainId] = c.chainName
+		}
+
 		for(const k in this.networks) {
 			this.dropdownItems.push({'code': k, 'name': this.networks[k]})
 		}
@@ -63,6 +64,9 @@ export default {
 			return this.$appState.darkTheme ? 'images/logo-white.svg' : 'images/logo-dark.svg';
 		},
 		handleChainChanged(_chainId) {
+			if (_chainId !== '0x13881') {
+				this.$toast.add({severity:'warn', summary: 'Network Change', detail:'This demo is only for Mumbai', life: 3000})
+			}
 			if (_chainId && this.chainId && _chainId !== this.chainId) {
 				// We recommend reloading the page, unless you must do otherwise
 				this.chainId = _chainId
@@ -95,8 +99,14 @@ export default {
 		async switchNetwork() {	
 			const code = await this.contractState.switchNetwork(this.dropdownItem.code)
 			if (code === 1) {
-				this.$toast.add({severity:'warn', summary: 'Network', detail: 'Add Network', life: 3000})
+				this.$toast.add({severity:'warn', summary: 'Network', detail: `Add ${this.networks[this.dropdownItem.code]} First`, life: 3000})
 			}
+			await this.contractState.useMetamask()
+			this.currentAccount = this.contractState.account
+			console.log(this.chainId, this.currentAccount)
+			this.contractState.ethereum.on('chainChanged', this.handleChainChanged)
+			this.contractState.ethereum.on('accountsChanged', this.handleAccountsChanged)
+			this.handleChainChanged(this.contractState.network.chainId)
 		},
     },
 	computed: {

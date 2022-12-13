@@ -23,6 +23,11 @@ const routes = [
                 component: () => import('./components/ValueLink.vue')
             },
             {
+                path: 'tools',
+                name: 'tools',
+                component: () => import('./components/Tools.vue')
+            },
+            {
                 path: '/formlayout',
                 name: 'formlayout',
                 component: () => import('./components/FormLayoutDemo.vue')
