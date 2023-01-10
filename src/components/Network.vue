@@ -178,17 +178,17 @@
 				const endNFTUri = NFTUri.parse(endUri)
 				const endContractName = this.contractState.addressName(endNFTUri.contractAddress)
 				const endNode = `${endContractName}#${endNFTUri.index}`
-				const linkNode = `${this.contractType}#${index}`
+				const linkNode = `${this.contractType}#${linkdId}`
 				
 				
 				// start -> linkNode
 				// linkNode -> end
-				this.edges[`start->link#${index}`] = {source: startNode, target: linkNode}
+				this.edges[`start->link#${linkdId}`] = {source: startNode, target: linkNode}
 				if (!filter[linkNode]) {
 					filter[linkNode] = 1
 					this.nodes[linkNode] = {name: linkNode, size: this.nodeSize/2, color: "gray", face:"images/themes/arya-blue.png"}
 				}
-				this.edges[`link->end#${index}`] = {source: linkNode, target: endNode}
+				this.edges[`link->end#${linkdId}`] = {source: linkNode, target: endNode}
 				if (!filter[endNode]) {
 					filter[endNode] = 1
 					const imgUri = await this.getImg(endContractName, endNFTUri.index)

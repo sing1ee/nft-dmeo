@@ -143,9 +143,9 @@
                     list.push({
 							"id": "" + nftUri.index,
 							"code": "v435nn85n",
-							"name": `${categoryKey}#${index}`,
-							"description": `Owned by`,
-							"image": `images/nft/${categoryKey}/${index}.png`,
+							"name": `${categoryKey}#${nftUri.index}`,
+							"description": `Value Link`,
+							"image": `images/nft/${categoryKey}/${nftUri.index}.png`,
 							"price": Math.ceil(Math.random()*10),
 							"category": `${this.valueLinkType} from ${categoryKey}`,
 							"quantity": 1000,
