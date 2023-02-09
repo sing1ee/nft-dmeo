@@ -22,7 +22,7 @@
 					</span>
 					<br />
 					<template #footer>
-						<Button label="Mint" @click="link()" icon="pi pi-check" class="p-button-outlined"/>
+						<Button label="LinkTo" @click="link()" icon="pi pi-check" class="p-button-outlined"/>
 					</template>
 				</Dialog>
 				<DataView :value="dataviewValue" :layout="layout" :paginator="true" :rows="9">
