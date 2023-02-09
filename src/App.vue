@@ -44,7 +44,9 @@ export default {
                 {
                     label: 'ValueLink',
                     items: [{
-                        label: 'ValueLink', icon: 'pi pi-fw pi-globe', to: '/valuelink'
+                        label: 'ValueLink Claims', icon: 'pi pi-fw pi-globe', to: '/valuelink'
+                    },{
+                        label: 'ValueLink Scan', icon: 'pi pi-fw pi-globe', to: '/valuelinkscan'
                     }]
                 },
                 // {

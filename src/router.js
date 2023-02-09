@@ -23,6 +23,11 @@ const routes = [
                 component: () => import('./components/ValueLink.vue')
             },
             {
+                path: 'valuelinkscan',
+                name: 'valuelinkscan',
+                component: () => import('./components/ValueLinkScan.vue')
+            },
+            {
                 path: 'tools',
                 name: 'tools',
                 component: () => import('./components/Tools.vue')
